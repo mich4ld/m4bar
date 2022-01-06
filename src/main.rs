@@ -38,8 +38,13 @@ fn main() {
         x.show_window(bar);
         
         loop {
-            let pending_events = x.get_pending_events();
-            println!("Pending events from X11: {}", pending_events);
+            let event = x.get_event();
+            match event {
+                Some(e) => {
+                    println!("X11 event: {}", e.get_type());
+                },
+                None => {}
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 use std::ffi::CString;
+use std::mem::zeroed;
 use std::os::raw::{c_int, c_long};
 use std::ptr::null;
 use std::slice::from_raw_parts;
@@ -124,7 +125,16 @@ impl X11 {
         );
     }
 
-    pub unsafe fn get_pending_events(&self) -> i32 {
-        xlib::XPending(self.display)
+    pub unsafe fn get_event(&self) -> Option<xlib::XEvent> {
+        let pending_events = xlib::XPending(self.display);
+        let mut event: xlib::XEvent = zeroed();
+
+        if pending_events > 0 {
+            xlib::XNextEvent(self.display, &mut event);
+
+            return Some(event);
+        }
+
+        None
     }
 }
