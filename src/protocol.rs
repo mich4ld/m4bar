@@ -27,7 +27,7 @@ impl X11 {
         xlib::XSelectInput(
             display,
             root,
-            PropertyChangeMask|FocusChangeMask,
+            PropertyChangeMask | FocusChangeMask,
         );
 
         X11 { display, xinerama_status, root, screen, visual, }
@@ -60,6 +60,7 @@ impl X11 {
     pub unsafe fn show_window(&self, window: u64) {
         xlib::XMapWindow(self.display, window);
         xlib::XSync(self.display, xlib::False);
+        xlib::XFlush(self.display);
     }
 
     pub unsafe fn get_atom(&self, atom_name: &str) -> xlib::Atom {
@@ -68,7 +69,7 @@ impl X11 {
         xlib::XInternAtom(self.display, name.as_ptr(), xlib::False)
     }
 
-    pub unsafe fn set_atom(&self, window: u64, atom_type: u64, atom: xlib::Atom, value: *const u8, len: i32, mode: c_int) {
+    pub unsafe fn set_atom(&self, window: u64, atom_type: u64, atom: u64, value: *const u8, len: i32, mode: c_int) {
         XChangeProperty(
             self.display, 
             window, 
