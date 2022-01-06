@@ -102,7 +102,6 @@ impl X11 {
     pub unsafe fn show_window(&self, window: u64) {
         xlib::XMapWindow(self.display, window);
         xlib::XSync(self.display, xlib::False);
-        xlib::XFlush(self.display);
     }
 
     pub unsafe fn get_atom(&self, atom_name: &str) -> xlib::Atom {
