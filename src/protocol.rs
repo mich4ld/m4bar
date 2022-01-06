@@ -123,4 +123,8 @@ impl X11 {
             len
         );
     }
+
+    pub unsafe fn get_pending_events(&self) -> i32 {
+        xlib::XPending(self.display)
+    }
 }
