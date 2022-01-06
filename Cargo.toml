@@ -1,0 +1,15 @@
+[package]
+name = "m4bar"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+x11 = { version = "2.19.1", features = ["xlib", "xinerama"] }
+signal-hook = "0.3.13"
+libc = "0.2.112"
+pango = "0.14.8"
+pangocairo = "0.14.0"
+cairo-sys-rs = { version = "0.14.9", features = ["xlib"] }
+chrono = "0.4.19"
