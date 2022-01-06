@@ -24,7 +24,17 @@ fn main() {
         }
 
         let x = protocol::X11::new();
-        let bar = x.create_window(0, 0, 1200, 42, 0xffffff);
+
+        let bar_width = 32;
+        let screen_info = x.get_screen(0);
+
+        let bar = x.create_window(
+            screen_info.x, 
+            screen_info.y, 
+            screen_info.width as u32, 
+            bar_width, 
+            0xffffff
+        );
         
         // set atoms
         let state_atom = x.get_atom(_NET_WM_STATE);
@@ -46,9 +56,9 @@ fn main() {
         let strut_partial_atom = x.get_atom(_NET_WM_STRUT_PARTIAL); 
         let mut strut: [i64; 12] = [0; 12];
 
-        strut[2] = 42;
-        strut[8] = 0;
-        strut[9] = 1200;
+        strut[2] = bar_width as i64;
+        strut[8] = screen_info.x as i64;
+        strut[9] = screen_info.x as i64 + screen_info.width as i64 - 1;
 
         x.set_atom(
             bar, 
@@ -94,7 +104,7 @@ fn main() {
 
         x.select_input(bar, ExposureMask | ButtonPressMask);
         x.show_window(bar);
-        std::thread::sleep(std::time::Duration::from_secs(5));
+        std::thread::sleep(std::time::Duration::from_secs(10));
         x.close();
     }
 }
