@@ -24,7 +24,7 @@ impl Ewmh<'_> {
         Ewmh { x11 }
     }
 
-    pub unsafe fn set_dock_type(&self, window: u64) {
+    pub unsafe fn set_as_dock_type(&self, window: u64) {
         let window_type_atom = self.x11.get_atom(_NET_WM_WINDOW_TYPE);
         let dock_type_atom = [self.x11.get_atom(_NET_WM_WINDOW_TYPE_DOCK)];
 

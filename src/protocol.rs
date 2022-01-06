@@ -24,6 +24,7 @@ pub struct X11 {
 
 impl X11 {
     pub unsafe fn new() -> X11 {
+        utils::printnotice("Opening X11 connection...");
         let display = xlib::XOpenDisplay(null());
         if display.is_null() {
             utils::throw_critical_error("Cannot open connection with display server!");

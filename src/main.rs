@@ -31,7 +31,7 @@ fn main() {
         let ewmh = Ewmh::new(&x);
         ewmh.set_strut(bar, strut);
         ewmh.set_always_show(bar);
-        ewmh.set_dock_type(bar);
+        ewmh.set_as_dock_type(bar);
         ewmh.set_window_state(bar);
 
         x.select_input(bar, ExposureMask | ButtonPressMask);
