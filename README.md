@@ -5,5 +5,5 @@ Work in progress in early stage of development.
 
 #### Goals:
 - configurable
-- support many window manager
+- support many window managers
 - write basic modules (clock, pager and hardware indicators)
