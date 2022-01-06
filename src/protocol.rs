@@ -4,6 +4,7 @@ use std::ptr::null;
 use std::slice::from_raw_parts;
 use x11::xlib::{self, _XDisplay, Visual, XChangeProperty, PropertyChangeMask, FocusChangeMask};
 use x11::xinerama;
+use crate::utils;
 
 pub struct ScreenInfo {
     pub x: i32,
@@ -24,7 +25,7 @@ impl X11 {
     pub unsafe fn new() -> X11 {
         let display = xlib::XOpenDisplay(null());
         if display.is_null() {
-            m4bar::throw_critical_error("Cannot open connection with display server!");
+            utils::throw_critical_error("Cannot open connection with display server!");
         }
 
         let root = xlib::XDefaultRootWindow(display);
@@ -69,7 +70,7 @@ impl X11 {
         let mut screen_index = 0;
 
         if self.xinerama_status == 0 {
-            m4bar::printwarn("Xinerama is not active. Using full X display size");
+            utils::printwarn("Xinerama is not active. Using full X display size");
             let display_width = xlib::XDisplayWidth(self.display, self.screen);
             let display_height = xlib::XDisplayHeight(self.display, self.screen);
 
@@ -86,7 +87,7 @@ impl X11 {
         let screen = screens.get(screen_num as usize);
 
         if screen.is_none() {
-            m4bar::throw_critical_error("Screen is not not available");
+            utils::throw_critical_error("Screen is not not available");
         }
 
         let screen = screen.unwrap();
