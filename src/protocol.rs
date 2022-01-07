@@ -24,7 +24,7 @@ pub struct X11 {
 
 impl X11 {
     pub unsafe fn new() -> X11 {
-        utils::printnotice("Opening X11 connection...");
+        utils::print_notice("Opening X11 connection...");
         let display = xlib::XOpenDisplay(null());
         if display.is_null() {
             utils::throw_critical_error("Cannot open connection with display server!");
@@ -72,7 +72,7 @@ impl X11 {
         let mut screen_index = 0;
 
         if self.xinerama_status == 0 {
-            utils::printwarn("Xinerama is not active. Using full X display size");
+            utils::print_warn("Xinerama is not active. Using full X display size");
             let display_width = xlib::XDisplayWidth(self.display, self.screen);
             let display_height = xlib::XDisplayHeight(self.display, self.screen);
 
