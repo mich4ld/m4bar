@@ -1,4 +1,6 @@
-use m4bar::{protocol, utils, ewmh::{Ewmh}};
+use std::{sync::mpsc::Sender, time::Duration};
+
+use m4bar::{protocol, utils::{self, print_notice}, ewmh::{Ewmh}, modules};
 use x11::xlib::{ButtonPressMask, ExposureMask};
 
 const ROOT_UID: u32 = 0;
@@ -46,6 +48,12 @@ fn main() {
         x.select_input(bar, ExposureMask | ButtonPressMask);
         x.show_window(bar);
         
+
+        std::thread::spawn(move || {
+            print_notice("Spawning module thread...");
+            modules_event_loop();
+        });
+
         loop {
             let event = x.get_event();
             match event {
@@ -55,5 +63,15 @@ fn main() {
                 None => {}
             }
         }
+    }
+}
+
+fn modules_event_loop() {
+    let clock = modules::clock::Clock::new(None);
+
+    loop {
+        let time = clock.handle_tick();
+        println!("Current time: {}", time);
+        std::thread::sleep(Duration::from_secs(1));
     }
 }

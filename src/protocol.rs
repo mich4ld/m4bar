@@ -130,6 +130,7 @@ impl X11 {
         let pending_events = xlib::XPending(self.display);
         let mut event: xlib::XEvent = zeroed();
 
+        // reads event without blocking event loop
         if pending_events > 0 {
             xlib::XNextEvent(self.display, &mut event);
 
