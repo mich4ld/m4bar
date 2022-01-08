@@ -2,6 +2,7 @@ use x11::xlib::{XA_CARDINAL, PropModeReplace, XA_ATOM, PropModeAppend};
 
 use crate::protocol::X11;
 
+// ATOM CONSTANTS
 const _NET_ACTIVE_WINDOW: &str = "_NET_ACTIVE_WINDOW";
 const _NET_WM_STATE_STICKY: &str = "_NET_WM_STATE_STICKY";
 const _NET_WM_STATE_ABOVE: &str = "_NET_WM_STATE_ABOVE";

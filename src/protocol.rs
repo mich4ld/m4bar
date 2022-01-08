@@ -15,11 +15,11 @@ pub struct ScreenInfo {
 }
 
 pub struct X11 {
-    display: *mut _XDisplay,
+    pub display: *mut _XDisplay,
     xinerama_status: i32,
     root: u64,
     screen: i32,
-    visual: *mut Visual,
+    pub visual: *mut Visual,
 }
 
 impl X11 {
@@ -52,6 +52,22 @@ impl X11 {
         let window = xlib::XCreateSimpleWindow(
             self.display, 
             self.root,
+            x, 
+            y, 
+            width, 
+            height, 
+            0, 
+            0,
+            bg
+        );
+
+        window
+    }
+
+    pub unsafe fn create_subwindow(&self, parent: u64, x: i32, y: i32, width: u32, height: u32, bg: u64) -> u64 {
+        let window = xlib::XCreateSimpleWindow(
+            self.display, 
+            parent,
             x, 
             y, 
             width, 
@@ -105,6 +121,10 @@ impl X11 {
     pub unsafe fn show_window(&self, window: u64) {
         xlib::XMapWindow(self.display, window);
         xlib::XSync(self.display, xlib::False);
+    }
+
+    pub unsafe fn resize_window(&self, window: u64, width: u32, height: u32) {
+        xlib::XResizeWindow(self.display, window, width, height);
     }
 
     pub unsafe fn get_atom(&self, atom_name: &str) -> xlib::Atom {

@@ -1,7 +1,6 @@
 use std::{sync::mpsc::Sender, time::Duration};
-
-use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules, bar::Bar};
-use x11::xlib::{ButtonPressMask, ExposureMask};
+use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules, bar::Bar, block::{Block, BlockAttributes}};
+use x11::xlib::{self, Expose};
 
 const ROOT_UID: u32 = 0;
 
@@ -22,12 +21,28 @@ fn main() {
             screen_info.y, 
             screen_info.width as u32, 
             bar_height, 
-            0xffffff
+            0
         );
 
         let ewmh = Ewmh::new(&x11_client);
         bar.configure_atoms(&ewmh);
         
+        let block_attr = BlockAttributes {
+            background: 0xffffff,
+            border_bottom: 0,
+            border_color: 0,
+            border_top: 0,
+            color: 0,
+            font: "MesloLGS NF 10".to_string(),
+            height: bar_height,
+            padding: 0,
+            width: 1,
+            x: 20,
+        };
+
+        let mut block = Block::new(&x11_client, bar.window, block_attr);
+        block.render("21:37".to_string());
+
         x11_client.show_window(bar.window);
 
         std::thread::spawn(move || {
@@ -39,13 +54,25 @@ fn main() {
             let event = x11_client.get_event();
             match event {
                 Some(e) => {
-                    println!("X11 event: {}", e.get_type());
+                    match e.get_type() {
+                        xlib::Expose => {
+                            println!("Expołs iwent");
+                            block.show();
+                        },
+                        _ => {
+                            println!("Some random event");
+                        }
+                    }
                 },
-                None => {}
+                None => {
+                    // reduces little bit asking for pending events
+                    std::thread::sleep(Duration::from_millis(200));
+                }
             }
         }
     }
 }
+
 
 fn modules_event_loop() {
     let mut clock = modules::clock::Clock::new(None);

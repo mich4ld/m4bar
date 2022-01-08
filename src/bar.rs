@@ -29,7 +29,7 @@ impl Bar {
             bg_color,
         );
 
-        x11.select_input(window, ExposureMask | ButtonPressMask);
+        x11.select_input(window, ExposureMask|ButtonPressMask);
 
         Bar { window, x, y, width, height, bg_color }
     }
