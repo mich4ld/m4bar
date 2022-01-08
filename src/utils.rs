@@ -7,7 +7,7 @@ const YELLOW: &str = "\x1b[33m";
 const BLUE: &str = "\x1b[34m";
 
 pub fn print_notice(msg: &str) {
-    eprintln!("{}{}notice{}: {}", BLUE, BOLD, WHITE, msg);
+    println!("{}{}notice{}: {}", BLUE, BOLD, WHITE, msg);
 }
 
 pub fn print_error(msg: &str) {

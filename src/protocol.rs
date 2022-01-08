@@ -89,7 +89,7 @@ impl X11 {
         let screen = screens.get(screen_num as usize);
 
         if screen.is_none() {
-            utils::throw_critical_error("Screen is not not available");
+            utils::throw_critical_error("Screen is not available");
         }
 
         let screen = screen.unwrap();
