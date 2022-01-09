@@ -1,6 +1,6 @@
 use x11::xlib::{ExposureMask, ButtonPressMask};
 
-use crate::{protocol::X11, ewmh::Ewmh};
+use crate::{protocol::X11, ewmh::Ewmh, colors};
 
 // STRUT INDEXES:
 const TOP: usize = 2;
@@ -16,17 +16,17 @@ pub struct Bar {
     y: i32,
     width: u32,
     height: u32,
-    bg_color: u64,
+    bg_color: String,
 }
 
 impl Bar {
-    pub unsafe fn new(x11: &X11, x: i32, y: i32, width: u32, height: u32, bg_color: u64) -> Bar {
+    pub unsafe fn new(x11: &X11, x: i32, y: i32, width: u32, height: u32, bg_color: String) -> Bar {
         let window = x11.create_window(
             x, 
             y, 
             width - 1, 
             height, 
-            bg_color,
+            colors::hex64(&bg_color),
         );
 
         x11.select_input(window, ExposureMask|ButtonPressMask);

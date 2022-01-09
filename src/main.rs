@@ -21,7 +21,7 @@ fn main() {
             screen_info.y, 
             screen_info.width as u32, 
             bar_height, 
-            0
+            String::from("#bf616a")
         );
 
         let ewmh = Ewmh::new(&x11_client);
