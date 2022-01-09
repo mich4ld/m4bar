@@ -10,7 +10,7 @@ pub fn hexify(string: &str) -> i32 {
     i32::from_str_radix(string, 16).unwrap()
 }
 
-pub fn hex_to_rgb(hex_str: String) -> [f64; 3] {
+pub fn hex_to_rgb(hex_str: &str) -> [f64; 3] {
     let hex = hex_str.replace("#", "");
 
     let red = hexify(&hex[0..2]);
@@ -18,4 +18,10 @@ pub fn hex_to_rgb(hex_str: String) -> [f64; 3] {
     let blue = hexify(&hex[4..6]);
 
     rgb(red, green, blue)
+}
+
+pub fn hex64(hex_str: &str) -> u64 {
+    let hex = hex_str.replace("#", "");
+
+    u64::from_str_radix(&hex, 16).unwrap()
 }

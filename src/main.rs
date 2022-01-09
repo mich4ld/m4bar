@@ -13,7 +13,7 @@ fn main() {
 
         let x11_client = protocol::X11::new();
 
-        let bar_height = 32;
+        let bar_height = 24;
         let screen_info = x11_client.get_screen(0);
         let bar = Bar::new(
             &x11_client, 
@@ -28,11 +28,11 @@ fn main() {
         bar.configure_atoms(&ewmh);
         
         let block_attr = BlockAttributes {
-            background: 0xffffff,
+            background: String::from("#ebcb8b"),
             border_bottom: 0,
             border_color: 0,
             border_top: 0,
-            color: 0,
+            color: String::from("#2e3440"),
             font: "MesloLGS NF 10".to_string(),
             height: bar_height,
             padding: 10,

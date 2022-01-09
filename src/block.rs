@@ -5,18 +5,18 @@ use pango::ffi::{pango_font_description_from_string, pango_layout_set_font_descr
 use pangocairo::ffi::{pango_cairo_create_layout, pango_cairo_show_layout, pango_cairo_update_layout};
 use cairo_sys::{cairo_t, cairo_surface_t};
 
-use crate::{protocol::X11, colors::rgb};
+use crate::{protocol::X11, colors};
 
 pub struct BlockAttributes {
     pub x: i32,
     pub width: u32,
     pub height: u32,
-    pub background: u64,
+    pub background: String,
     pub border_bottom: i32,
     pub border_top: i32,
     pub border_color: u64,
     pub padding: i32,
-    pub color: i32,
+    pub color: String,
     pub font: String,
 }
 
@@ -27,6 +27,8 @@ pub struct Block<'a> {
     layout: *mut PangoLayout,
     cairo_context: *mut cairo_t,
     surface: *mut cairo_surface_t,
+    color_rgb: [f64; 3],
+    bg_rgb: [f64; 3],
 }
 
 impl Block<'_> {
@@ -38,7 +40,7 @@ impl Block<'_> {
             0, 
             attributes.width, 
             attributes.height, 
-            attributes.background
+            colors::hex64(&attributes.background),
         );
 
         let surface = cairo_xlib_surface_create(
@@ -52,7 +54,16 @@ impl Block<'_> {
         let cairo_context = cairo_create(surface);
         let layout = pango_cairo_create_layout(cairo_context);
 
-        Block { x11, window, attributes, layout, cairo_context, surface }
+        Block { 
+            x11, 
+            window, 
+            bg_rgb: colors::hex_to_rgb(&attributes.background),
+            color_rgb: colors::hex_to_rgb(&attributes.color),
+            attributes, 
+            layout, 
+            cairo_context, 
+            surface, 
+        }
     }
 
     pub unsafe fn render(&mut self, text: String) {
@@ -63,8 +74,8 @@ impl Block<'_> {
         let text_len = text.len();
         let c_text = CString::new(text).unwrap();
 
-        let black = rgb(1, 0, 0);
-        cairo_set_source_rgb(self.cairo_context, black[0], black[1], black[2]);
+        let color = self.color_rgb;
+        cairo_set_source_rgb(self.cairo_context, color[0], color[1], color[2]);
         pango_layout_set_font_description(self.layout, pango_font);
         pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
 
@@ -72,7 +83,8 @@ impl Block<'_> {
         cairo_translate(
             self.cairo_context, 
             self.attributes.padding as f64, 
-            self.attributes.height as f64 / 2.0 - height as f64 / 2.0);
+            self.attributes.height as f64 / 2.0 - height as f64 / 2.0
+        );
 
         self.resize_width(width);
     }
@@ -97,11 +109,14 @@ impl Block<'_> {
     pub unsafe fn rerender(&mut self, text: String) {
         let text_len = text.len();
         let c_text = CString::new(text).unwrap();
-        cairo_set_source_rgb(self.cairo_context, 1.0, 1.0, 1.0);
+
+        let bg = self.bg_rgb;
+        cairo_set_source_rgb(self.cairo_context, bg[0], bg[1], bg[2]);
         cairo_rectangle(self.cairo_context, 0.0, 0.0, self.attributes.width as f64, self.attributes.height as f64);
         cairo_fill(self.cairo_context);
-    
-        cairo_set_source_rgb(self.cairo_context, 0.0, 0.0, 0.0);
+        
+        let color = self.color_rgb;
+        cairo_set_source_rgb(self.cairo_context, color[0], color[1], color[2]);
         pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
         pango_cairo_update_layout(self.cairo_context, self.layout);
         
