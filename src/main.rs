@@ -1,6 +1,6 @@
-use std::{sync::mpsc::Sender, time::Duration};
+use std::{time::Duration};
 use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules, bar::Bar, block::{Block, BlockAttributes}};
-use x11::xlib::{self, Expose};
+use x11::xlib;
 
 const ROOT_UID: u32 = 0;
 
