@@ -64,13 +64,16 @@ impl Block<'_> {
         let c_text = CString::new(text).unwrap();
 
         let black = rgb(1, 0, 0);
-        cairo_translate(self.cairo_context, self.attributes.padding as f64, 0.0);
         cairo_set_source_rgb(self.cairo_context, black[0], black[1], black[2]);
         pango_layout_set_font_description(self.layout, pango_font);
         pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
 
-        let (width, _height) = self.get_layout_size();
-        
+        let (width, height) = self.get_layout_size();
+        cairo_translate(
+            self.cairo_context, 
+            self.attributes.padding as f64, 
+            self.attributes.height as f64 / 2.0 - height as f64 / 2.0);
+
         self.resize_width(width);
     }
 
