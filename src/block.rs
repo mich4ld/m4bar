@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use cairo_sys::{cairo_xlib_surface_create, cairo_create, cairo_set_source_rgb, cairo_xlib_surface_set_size, cairo_rectangle, cairo_fill};
+use cairo_sys::{cairo_xlib_surface_create, cairo_create, cairo_set_source_rgb, cairo_xlib_surface_set_size, cairo_rectangle, cairo_fill, cairo_translate};
 use pango::ffi::{pango_font_description_from_string, pango_layout_set_font_description, pango_layout_set_text, pango_layout_get_pixel_size, PangoLayout};
 use pangocairo::ffi::{pango_cairo_create_layout, pango_cairo_show_layout, pango_cairo_update_layout};
 use cairo_sys::{cairo_t, cairo_surface_t};
@@ -30,7 +30,8 @@ pub struct Block<'a> {
 }
 
 impl Block<'_> {
-    pub unsafe fn new(x11: &X11, bar: u64, attributes: BlockAttributes) -> Block {
+    pub unsafe fn new(x11: &X11, bar: u64, mut attributes: BlockAttributes) -> Block {
+        attributes.width = attributes.padding as u32 + attributes.width + attributes.padding as u32;
         let window = x11.create_subwindow(
             bar,
             attributes.x, 
@@ -63,7 +64,7 @@ impl Block<'_> {
         let c_text = CString::new(text).unwrap();
 
         let black = rgb(1, 0, 0);
-        println!("RGB: ({}, {}, {})", black[0], black[1], black[2]);
+        cairo_translate(self.cairo_context, self.attributes.padding as f64, 0.0);
         cairo_set_source_rgb(self.cairo_context, black[0], black[1], black[2]);
         pango_layout_set_font_description(self.layout, pango_font);
         pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
@@ -74,16 +75,17 @@ impl Block<'_> {
     }
 
     unsafe fn get_layout_size(&self) -> (i32, i32) {
+        let padding = self.attributes.padding;
         let mut width = 0;
         let mut height = 0;
         pango_layout_get_pixel_size(self.layout, &mut width, &mut height);
 
-        (width, height)
+        (padding + width + padding, height)
     }
 
     unsafe fn resize_width(&mut self, width: i32) {
         self.attributes.width = width as u32;
-        
+
         self.x11.resize_window(self.window, width as u32, self.attributes.height);
         cairo_xlib_surface_set_size(self.surface, width, self.attributes.height as i32);
         self.x11.show_window(self.window);
@@ -99,14 +101,13 @@ impl Block<'_> {
         cairo_set_source_rgb(self.cairo_context, 0.0, 0.0, 0.0);
         pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
         pango_cairo_update_layout(self.cairo_context, self.layout);
-        pango_cairo_show_layout(self.cairo_context, self.layout);
         
+        self.show();
         let (width, _height) = self.get_layout_size();
 
         if width != self.attributes.width as i32 {
             self.resize_width(width);
         }
-        
     }
 
     pub unsafe fn show(&self) {

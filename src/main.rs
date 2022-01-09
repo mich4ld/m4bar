@@ -35,7 +35,7 @@ fn main() {
             color: 0,
             font: "MesloLGS NF 10".to_string(),
             height: bar_height,
-            padding: 0,
+            padding: 10,
             width: 1,
             x: 20,
         };
@@ -60,12 +60,9 @@ fn main() {
                 Some(e) => {
                     match e.get_type() {
                         xlib::Expose => {
-                            println!("Expołs iwent");
                             block.show();
                         },
-                        _ => {
-                            println!("Some random event");
-                        }
+                        _ => {}
                     }
                 },
                 None => {
