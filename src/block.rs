@@ -1,8 +1,8 @@
 use std::ffi::CString;
 
-use cairo_sys::{cairo_xlib_surface_create, cairo_create, cairo_set_source_rgb, cairo_xlib_surface_set_size};
+use cairo_sys::{cairo_xlib_surface_create, cairo_create, cairo_set_source_rgb, cairo_xlib_surface_set_size, cairo_rectangle, cairo_fill};
 use pango::ffi::{pango_font_description_from_string, pango_layout_set_font_description, pango_layout_set_text, pango_layout_get_pixel_size, PangoLayout};
-use pangocairo::ffi::{pango_cairo_create_layout, pango_cairo_show_layout};
+use pangocairo::ffi::{pango_cairo_create_layout, pango_cairo_show_layout, pango_cairo_update_layout};
 use cairo_sys::{cairo_t, cairo_surface_t};
 
 use crate::{protocol::X11, colors::rgb};
@@ -77,6 +77,19 @@ impl Block<'_> {
         self.x11.resize_window(self.window, width as u32, self.attributes.height);
         cairo_xlib_surface_set_size(self.surface, width, self.attributes.height as i32);
         self.x11.show_window(self.window);
+    }
+
+    pub unsafe fn rerender(&mut self, text: String) {
+        let text_len = text.len();
+        let c_text = CString::new(text).unwrap();
+        cairo_set_source_rgb(self.cairo_context, 1.0, 1.0, 1.0);
+        cairo_rectangle(self.cairo_context, 0.0, 0.0, self.attributes.width as f64, self.attributes.height as f64);
+        cairo_fill(self.cairo_context);
+    
+        cairo_set_source_rgb(self.cairo_context, 0.0, 0.0, 0.0);
+        pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
+        pango_cairo_update_layout(self.cairo_context, self.layout);
+        pango_cairo_show_layout(self.cairo_context, self.layout);
     }
 
     pub unsafe fn show(&self) {

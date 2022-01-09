@@ -50,7 +50,11 @@ fn main() {
             modules_event_loop();
         });
 
+        let mut example_value = 20;
         loop {
+            example_value += 1;
+            block.rerender(format!("{}", example_value));
+
             let event = x11_client.get_event();
             match event {
                 Some(e) => {
