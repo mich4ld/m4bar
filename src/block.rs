@@ -69,7 +69,7 @@ impl Block<'_> {
         pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
 
         let (width, _height) = self.get_layout_size();
-
+        
         self.resize_width(width);
     }
 
@@ -83,6 +83,7 @@ impl Block<'_> {
 
     unsafe fn resize_width(&mut self, width: i32) {
         self.attributes.width = width as u32;
+        
         self.x11.resize_window(self.window, width as u32, self.attributes.height);
         cairo_xlib_surface_set_size(self.surface, width, self.attributes.height as i32);
         self.x11.show_window(self.window);
@@ -101,7 +102,11 @@ impl Block<'_> {
         pango_cairo_show_layout(self.cairo_context, self.layout);
         
         let (width, _height) = self.get_layout_size();
-        self.resize_width(width);
+
+        if width != self.attributes.width as i32 {
+            self.resize_width(width);
+        }
+        
     }
 
     pub unsafe fn show(&self) {
