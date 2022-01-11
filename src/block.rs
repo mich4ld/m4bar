@@ -29,7 +29,7 @@ pub struct Block<'a> {
     surface: *mut cairo_surface_t,
     color_rgb: [f64; 3],
     bg_rgb: [f64; 3],
-    is_visible: bool,
+    is_exposed: bool,
 }
 
 impl Block<'_> {
@@ -64,21 +64,23 @@ impl Block<'_> {
             layout, 
             cairo_context, 
             surface,
-            is_visible: false,
+            is_exposed: false,
         }
+    }
+
+    unsafe fn set_color(&self, rgb: [f64; 3]) {
+        cairo_set_source_rgb(self.cairo_context, rgb[0], rgb[1], rgb[2]);
     }
 
     unsafe fn draw(&self, text: String) {
         let text_len = text.len();
         let c_text = CString::new(text).unwrap();
 
-        let bg = self.bg_rgb;
-        cairo_set_source_rgb(self.cairo_context, bg[0], bg[1], bg[2]);
+        self.set_color(self.bg_rgb);
         cairo_rectangle(self.cairo_context, 0.0, 0.0, self.attributes.width as f64, self.attributes.height as f64);
         cairo_fill(self.cairo_context);
 
-        let color = self.color_rgb;
-        cairo_set_source_rgb(self.cairo_context, color[0], color[1], color[2]);
+        self.set_color(self.color_rgb);
         pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
     }
 
@@ -117,9 +119,9 @@ impl Block<'_> {
     }
 
     pub unsafe fn expose(&mut self) {
-        if !self.is_visible {
+        if !self.is_exposed {
             self.show();
-            self.is_visible = true;
+            self.is_exposed = true;
         }
     }
 
