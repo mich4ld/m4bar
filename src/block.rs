@@ -87,7 +87,7 @@ impl Block<'_> {
         let c_font = CString::new(font).unwrap();
         let pango_font = pango_font_description_from_string(c_font.as_ptr());
 
-        self.draw(text.clone());
+        self.draw(text);
         pango_layout_set_font_description(self.layout, pango_font);
         let (width, height) = self.get_layout_size();
         cairo_translate(
@@ -97,7 +97,6 @@ impl Block<'_> {
         );
 
         self.resize_width(width);
-        self.draw(text);
     }
 
     unsafe fn get_layout_size(&self) -> (i32, i32) {
