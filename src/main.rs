@@ -33,7 +33,7 @@ fn main() {
             border_color: 0,
             border_top: 0,
             color: String::from("#2e3440"),
-            font: "MesloLGS NF 10".to_string(),
+            font:  String::from("Ubuntu 10"),
             height: bar_height,
             padding: 10,
             width: 1,
@@ -72,7 +72,6 @@ fn main() {
         }
     }
 }
-
 
 fn modules_event_loop() {
     let mut clock = modules::clock::Clock::new(None);
