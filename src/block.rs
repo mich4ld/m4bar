@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use cairo_sys::{cairo_xlib_surface_create, cairo_create, cairo_set_source_rgb, cairo_xlib_surface_set_size, cairo_rectangle, cairo_fill, cairo_translate};
+use cairo_sys::{cairo_xlib_surface_create, cairo_create, cairo_set_source_rgb, cairo_xlib_surface_set_size, cairo_rectangle, cairo_fill, cairo_translate, cairo_save, cairo_restore};
 use pango::ffi::{pango_font_description_from_string, pango_layout_set_font_description, pango_layout_set_text, pango_layout_get_pixel_size, PangoLayout};
 use pangocairo::ffi::{pango_cairo_create_layout, pango_cairo_show_layout, pango_cairo_update_layout};
 use cairo_sys::{cairo_t, cairo_surface_t};
@@ -29,6 +29,7 @@ pub struct Block<'a> {
     surface: *mut cairo_surface_t,
     color_rgb: [f64; 3],
     bg_rgb: [f64; 3],
+    is_visible: bool,
 }
 
 impl Block<'_> {
@@ -62,8 +63,23 @@ impl Block<'_> {
             attributes, 
             layout, 
             cairo_context, 
-            surface, 
+            surface,
+            is_visible: false,
         }
+    }
+
+    unsafe fn draw(&self, text: String) {
+        let text_len = text.len();
+        let c_text = CString::new(text).unwrap();
+
+        let bg = self.bg_rgb;
+        cairo_set_source_rgb(self.cairo_context, bg[0], bg[1], bg[2]);
+        cairo_rectangle(self.cairo_context, 0.0, 0.0, self.attributes.width as f64, self.attributes.height as f64);
+        cairo_fill(self.cairo_context);
+
+        let color = self.color_rgb;
+        cairo_set_source_rgb(self.cairo_context, color[0], color[1], color[2]);
+        pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
     }
 
     pub unsafe fn render(&mut self, text: String) {
@@ -71,14 +87,8 @@ impl Block<'_> {
         let c_font = CString::new(font).unwrap();
         let pango_font = pango_font_description_from_string(c_font.as_ptr());
 
-        let text_len = text.len();
-        let c_text = CString::new(text).unwrap();
-
-        let color = self.color_rgb;
-        cairo_set_source_rgb(self.cairo_context, color[0], color[1], color[2]);
+        self.draw(text.clone());
         pango_layout_set_font_description(self.layout, pango_font);
-        pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
-
         let (width, height) = self.get_layout_size();
         cairo_translate(
             self.cairo_context, 
@@ -87,6 +97,7 @@ impl Block<'_> {
         );
 
         self.resize_width(width);
+        self.draw(text);
     }
 
     unsafe fn get_layout_size(&self) -> (i32, i32) {
@@ -106,29 +117,26 @@ impl Block<'_> {
         self.x11.show_window(self.window);
     }
 
-    pub unsafe fn rerender(&mut self, text: String) {
-        let text_len = text.len();
-        let c_text = CString::new(text).unwrap();
-
-        let bg = self.bg_rgb;
-        cairo_set_source_rgb(self.cairo_context, bg[0], bg[1], bg[2]);
-        cairo_rectangle(self.cairo_context, 0.0, 0.0, self.attributes.width as f64, self.attributes.height as f64);
-        cairo_fill(self.cairo_context);
-        
-        let color = self.color_rgb;
-        cairo_set_source_rgb(self.cairo_context, color[0], color[1], color[2]);
-        pango_layout_set_text(self.layout, c_text.as_ptr(), text_len as i32);
-        pango_cairo_update_layout(self.cairo_context, self.layout);
-        
-        self.show();
-        let (width, _height) = self.get_layout_size();
-
-        if width != self.attributes.width as i32 {
-            self.resize_width(width);
+    pub unsafe fn expose(&mut self) {
+        if !self.is_visible {
+            self.show();
+            self.is_visible = true;
         }
     }
 
-    pub unsafe fn show(&self) {
+    pub unsafe fn rerender(&mut self, text: String) {
+        self.draw(text);
+        let (width, _height) = self.get_layout_size();
+        pango_cairo_update_layout(self.cairo_context, self.layout);
+        
+        if width != self.attributes.width as i32 {
+            self.resize_width(width);
+        }
+
+        self.show();
+    }
+
+    pub unsafe fn show(&mut self) {
         pango_cairo_show_layout(self.cairo_context, self.layout);
     }
 }
