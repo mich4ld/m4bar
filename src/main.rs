@@ -29,11 +29,11 @@ fn main() {
         
         let block_attr = BlockAttributes {
             background: String::from("#ebcb8b"),
-            border_bottom: 0,
-            border_color: 0,
-            border_top: 0,
+            border_bottom: 3,
+            border_color: String::from("#a3be8c"),
+            border_top: 10,
             color: String::from("#2e3440"),
-            font:  String::from("Ubuntu 10"),
+            font:  String::from("MesloLGS NF 10"),
             height: bar_height,
             padding: 10,
             width: 1,
@@ -41,7 +41,7 @@ fn main() {
         };
 
         let mut block = Block::new(&x11_client, bar.window, block_attr);
-        block.render("21:37".to_string());
+        block.init("21:37".to_string());
 
         x11_client.show_window(bar.window);
 
@@ -52,8 +52,8 @@ fn main() {
 
         let mut example_value = 20;
         loop {
-            example_value += 1;
-            //block.rerender(format!("{}", example_value));
+            example_value += 0;
+            block.rerender(format!("{}", example_value));
             let event = x11_client.get_event();
             match event {
                 Some(e) => {
