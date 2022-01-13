@@ -8,7 +8,6 @@ use cairo_sys::{cairo_t, cairo_surface_t};
 use crate::{protocol::X11, colors};
 
 pub struct BlockAttributes {
-    pub x: i32,
     pub width: u32,
     pub height: u32,
     pub background: String,
@@ -22,8 +21,8 @@ pub struct BlockAttributes {
 
 pub struct Block<'a> {
     x11: &'a X11,
-    window: u64,
-    attributes: BlockAttributes,
+    pub window: u64,
+    pub attributes: BlockAttributes,
     layout: *mut PangoLayout,
     cairo_context: *mut cairo_t,
     surface: *mut cairo_surface_t,
@@ -36,11 +35,11 @@ pub struct Block<'a> {
 }
 
 impl Block<'_> {
-    pub unsafe fn new(x11: &X11, bar: u64, mut attributes: BlockAttributes) -> Block {
+    pub unsafe fn new(x11: &X11, x: i32, bar: u64, mut attributes: BlockAttributes) -> Block {
         attributes.width = attributes.padding as u32 + attributes.width + attributes.padding as u32;
         let window = x11.create_subwindow(
             bar,
-            attributes.x, 
+            x, 
             0, 
             attributes.width, 
             attributes.height, 
@@ -149,18 +148,15 @@ impl Block<'_> {
     unsafe fn resize_width(&mut self, width: i32) {
         self.attributes.width = width as u32;
 
-        self.x11.resize_window(self.window, width as u32, self.attributes.height);
         cairo_xlib_surface_set_size(self.surface, width, self.attributes.height as i32);
+        self.x11.resize_window(self.window, width as u32, self.attributes.height);
         
         self.x11.show_window(self.window);
     }
 
     pub unsafe fn init(&mut self, text: String) {
         self.compute(&text);
-        self.text = text;
-        
-        let (width, _height) = self.get_layout_size();
-        self.resize_width(width);
+        self.text = text;      
     }
 
     pub unsafe fn expose(&mut self) {
@@ -171,23 +167,29 @@ impl Block<'_> {
         }
     }
 
-    pub unsafe fn render(&mut self, text: String) {
+    pub unsafe fn render(&mut self, text: String) -> bool {
+        let mut changed_width = false;
         self.text = text.clone();
         self.draw(text);
         let (width, _height) = self.get_layout_size();
-        
+
         if width != self.attributes.width as i32 {
             self.resize_width(width);
+            changed_width = true;
         }
 
         pango_cairo_update_layout(self.cairo_context, self.layout);
         self.show();
+
+        changed_width
     }
 
-    pub unsafe fn rerender(&mut self, text: String) {
+    pub unsafe fn rerender(&mut self, text: String) -> bool {
         if text != self.text {
-            self.render(text);
+            return self.render(text);
         }
+
+        false
     }
 
     pub unsafe fn show(&mut self) {

@@ -1,5 +1,5 @@
-use std::{time::Duration};
-use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules, bar::Bar, block::{Block, BlockAttributes}};
+use std::time::Duration;
+use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules, bar::Bar, block::BlockAttributes, renderer::Renderer};
 use x11::xlib;
 
 const ROOT_UID: u32 = 0;
@@ -26,22 +26,38 @@ fn main() {
 
         let ewmh = Ewmh::new(&x11_client);
         bar.configure_atoms(&ewmh);
-        
+
         let block_attr = BlockAttributes {
             background: String::from("#ebcb8b"),
             border_bottom: 3,
-            border_color: String::from("#a3be8c"),
-            border_top: 10,
+            border_color: String::from("#000000"),
+            border_top: 3,
             color: String::from("#2e3440"),
             font:  String::from("MesloLGS NF 10"),
             height: bar_height,
             padding: 10,
             width: 1,
-            x: 20,
         };
 
-        let mut block = Block::new(&x11_client, bar.window, block_attr);
-        block.init("21:37".to_string());
+        let block_attr2 = BlockAttributes {
+            background: String::from("#ffffff"),
+            border_bottom: 0,
+            border_color: String::from("#000000"),
+            border_top: 0,
+            color: String::from("#2e3440"),
+            font:  String::from("Roboto 10"),
+            height: bar_height,
+            padding: 10,
+            width: 1,
+        };
+
+        let mut renderer = Renderer::new(&x11_client, bar.window);
+        let blocks = vec![
+            (String::from("Random text"), block_attr),
+            (String::from("Another random text"), block_attr2),
+        ];
+
+        renderer.create_blocks(blocks);
 
         x11_client.show_window(bar.window);
 
@@ -50,23 +66,22 @@ fn main() {
             modules_event_loop();
         });
 
-        let mut example_value = 20;
         loop {
-            example_value += 0;
-            block.rerender(format!("{}", example_value));
             let event = x11_client.get_event();
+
             match event {
                 Some(e) => {
                     match e.get_type() {
                         xlib::Expose => {
-                            block.expose();
+                            //block.expose();
+                            renderer.expose_all();
                         },
                         _ => {}
                     }
                 },
                 None => {
                     // reduces little bit asking for pending events
-                    std::thread::sleep(Duration::from_millis(200));
+                    std::thread::sleep(Duration::from_millis(100));
                 }
             }
         }
@@ -78,7 +93,7 @@ fn modules_event_loop() {
 
     loop {
         let time_result = &clock.handle_tick();
-        println!("Time: {}", time_result);
+        //println!("Time: {}", time_result);
         
         std::thread::sleep(Duration::from_secs(1));
     }
