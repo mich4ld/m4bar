@@ -1,18 +1,29 @@
+use super::{Module, UpdateMessage};
+
 pub struct Clock {
     date_format: String,
+    window: u64,
 }
 
 impl Clock {
-    pub fn new(date_format_option: Option<String>) -> Clock {
-        let date_format = date_format_option.unwrap_or_else(|| "%H:%M".to_string());
+    pub fn new(window: u64) -> Clock {
+        //let date_format = date_format_option.unwrap_or_else(|| "%H:%M".to_string());
 
-        Clock { date_format }
+        Clock { 
+            date_format: String::from("%H:%M"), 
+            window,
+        }
     }
+}
 
-    pub fn handle_tick(&mut self) -> String {
+impl Module for Clock {
+    fn handle_tick(&self) -> UpdateMessage {
         let now = chrono::Local::now();
         let time = now.format(&self.date_format);
             
-        time.to_string()
+        UpdateMessage {
+            text: time.to_string(),
+            window: self.window,
+        }
     }
 }

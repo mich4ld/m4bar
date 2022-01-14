@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{block::{Block, BlockAttributes}, protocol::X11};
+use crate::{block::{Block, BlockAttributes}, protocol::X11, modules::{ModuleType, Module, clock::Clock, ModuleObject}};
 
 pub struct Renderer<'a> {
    blocks: HashMap<u64, Block<'a>>,
@@ -23,17 +23,28 @@ impl Renderer<'_> {
         }
     }
 
-    pub unsafe fn create_blocks(&mut self, attributes: Vec<(String, BlockAttributes)>) {
+    pub unsafe fn create_blocks(&mut self, attributes: Vec<(String, BlockAttributes, ModuleType)>) -> Vec<ModuleObject> {
         let mut current_x = 0;
+        let mut modules: Vec<ModuleObject> = Vec::new();
 
-        for (text, block_attributes) in attributes {
+        for (text, block_attributes, module_type) in attributes {
             let mut block = Block::new(self.x11, current_x, self.bar_window, block_attributes);
             
+            match module_type {
+                ModuleType::CLOCK => {
+                    let module = Clock::new(block.window);
+                    modules.push(ModuleObject::CLOCK(module));
+                },
+                _ => {}
+            }
+
             block.init(text);
 
             current_x += block.attributes.width as i32;
             self.blocks.insert(block.window, block);
         }
+
+        modules
     }
 
     unsafe fn handle_width_change(&self) {
@@ -48,6 +59,10 @@ impl Renderer<'_> {
         if block_option.is_some() {
             let block = block_option.unwrap();
             let changed_width = block.rerender(text);
+
+            if changed_width {
+                self.handle_width_change();
+            }
         }
     }
 }

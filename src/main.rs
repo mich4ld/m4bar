@@ -1,5 +1,5 @@
-use std::time::Duration;
-use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules, bar::Bar, block::BlockAttributes, renderer::Renderer};
+use std::{time::Duration, sync::mpsc};
+use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules::{self, Module, UpdateMessage, ModuleType, ModuleObject}, bar::Bar, block::BlockAttributes, renderer::Renderer};
 use x11::xlib;
 
 const ROOT_UID: u32 = 0;
@@ -51,29 +51,45 @@ fn main() {
             width: 1,
         };
 
+        let block_attr3 = BlockAttributes {
+            background: String::from("#ebcb8b"),
+            border_bottom: 0,
+            border_color: String::from("#000000"),
+            border_top: 0,
+            color: String::from("#2e3440"),
+            font:  String::from("Roboto Mono 10"),
+            height: bar_height,
+            padding: 10,
+            width: 1,
+        };
+
         let mut renderer = Renderer::new(&x11_client, bar.window);
         let blocks = vec![
-            (String::from("Random text"), block_attr),
-            (String::from("Another random text"), block_attr2),
+            (String::from("Random text"), block_attr, ModuleType::STATIC),
+            (String::from("Another random text"), block_attr2, ModuleType::STATIC),
+            (String::from("21:37"), block_attr3, ModuleType::CLOCK),
         ];
 
-        renderer.create_blocks(blocks);
+        let modules = renderer.create_blocks(blocks);
 
         x11_client.show_window(bar.window);
 
+        let (sender, receiver) = mpsc::channel();
         std::thread::spawn(move || {
             print_notice("Spawning module thread...");
-            modules_event_loop();
+            modules_event_loop(sender, modules);
         });
 
         loop {
             let event = x11_client.get_event();
+            if let Ok(message) = receiver.try_recv() {
+                renderer.update_block(message.window, message.text);
+            };
 
             match event {
                 Some(e) => {
                     match e.get_type() {
                         xlib::Expose => {
-                            //block.expose();
                             renderer.expose_all();
                         },
                         _ => {}
@@ -88,13 +104,17 @@ fn main() {
     }
 }
 
-fn modules_event_loop() {
-    let mut clock = modules::clock::Clock::new(None);
-
+fn modules_event_loop(sender: mpsc::Sender<UpdateMessage>, modules: Vec<ModuleObject>) {
     loop {
-        let time_result = &clock.handle_tick();
-        //println!("Time: {}", time_result);
-        
+        for module in modules.iter() {
+            match module {
+                ModuleObject::CLOCK(clock) => {
+                    let message = clock.handle_tick();
+                    sender.send(message).unwrap();
+                }
+            }
+        }
+
         std::thread::sleep(Duration::from_secs(1));
     }
 }
