@@ -1,9 +1,10 @@
 use x11::xlib::{XA_CARDINAL, PropModeReplace, XA_ATOM, PropModeAppend};
-
 use crate::protocol::X11;
 
 // ATOM CONSTANTS
 const _NET_ACTIVE_WINDOW: &str = "_NET_ACTIVE_WINDOW";
+const _NET_CURRENT_DESKTOP: &str = "_NET_CURRENT_DESKTOP";
+const _NET_NUMBER_OF_DESKTOPS: &str = "_NET_NUMBER_OF_DESKTOPS";
 const _NET_WM_STATE_STICKY: &str = "_NET_WM_STATE_STICKY";
 const _NET_WM_STATE_ABOVE: &str = "_NET_WM_STATE_ABOVE";
 const _NET_WM_STATE: &str = "_NET_WM_STATE";
@@ -12,8 +13,6 @@ const _NET_WM_WINDOW_TYPE_DOCK: &str = "_NET_WM_WINDOW_TYPE_DOCK";
 const _NET_WM_STRUT: &str = "_NET_WM_STRUT";
 const _NET_WM_STRUT_PARTIAL: &str = "_NET_WM_STRUT_PARTIAL";
 const _NET_WM_DESKTOP: &str = "_NET_WM_DESKTOP";
-const _NET_WM_CURRENT_DESKTOP: &str = "_NET_CURRENT_DESKTOP";
-const _NET_WM_NUMBER_OF_DESKTOPS: &str = "_NET_NUMBER_OF_DESKTOPS";
 const _NET_WM_NAME: &str = "_NET_WM_NAME";
 
 pub struct Ewmh<'a> {
@@ -91,5 +90,30 @@ impl Ewmh<'_> {
             12,
             PropModeReplace,
         );
+    }
+
+    pub unsafe fn change_virtual_desktop(&self, desktop_num: i64) {
+        let data: [i64; 5] = [desktop_num, 0, 0, 0, 0];
+        self.x11.send_event(_NET_CURRENT_DESKTOP, data);
+    }
+
+    pub unsafe fn get_virtual_desktops_number(&self) -> u8 {
+        let desktops_num = self.x11
+            .get_property(_NET_NUMBER_OF_DESKTOPS, self.x11.root)
+            .unwrap_or_else(|| Vec::new());
+            
+        if desktops_num.len() < 1 {
+            return 0;
+        }
+
+        return desktops_num[0];
+    }
+
+    pub unsafe fn get_current_virtual_desktop(&self) -> u8 {
+        let current_desktop = self.x11
+            .get_property(_NET_CURRENT_DESKTOP, self.x11.root)
+            .unwrap_or_else(|| [0].to_vec());
+        
+        return current_desktop[0];
     }
 }

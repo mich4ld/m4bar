@@ -17,7 +17,7 @@ pub struct ScreenInfo {
 pub struct X11 {
     pub display: *mut _XDisplay,
     xinerama_status: i32,
-    root: u64,
+    pub root: u64,
     screen: i32,
     pub visual: *mut Visual,
 }
@@ -158,5 +158,60 @@ impl X11 {
         }
 
         None
+    }
+
+    pub unsafe fn send_event(&self, atom_str: &str, data: [i64; 5]) {
+        let atom = self.get_atom(atom_str);
+
+        let event = xlib::XClientMessageEvent {
+            window: self.root,
+            display: self.display,
+            format: 32,
+            send_event: 0,
+            serial: 0,
+            message_type: atom,
+            type_: xlib::ClientMessage,
+            data: std::mem::transmute(data),            
+        };
+
+        xlib::XSendEvent(
+            self.display,
+            self.root,
+            0,
+            xlib::SubstructureNotifyMask,
+            &mut event.into(),
+        );
+    }
+
+    pub unsafe fn get_property(&self, atom_str: &str, window: u64) -> Option<Vec<u8>> {
+        let atom = self.get_atom( atom_str);
+        let mut actual_type: u64 = 0;
+        let mut actual_format: i32 = 0;
+        let mut nitems: u64 = 0;
+        let mut bytes_after: u64 = 0;
+        let mut prop: *mut u8 = std::mem::MaybeUninit::uninit().assume_init();
+
+        let result = xlib::XGetWindowProperty(
+            self.display,
+             window, 
+             atom, 
+             0, 
+             i64::MAX, 
+             0,
+             0, 
+             &mut actual_type, 
+             &mut actual_format, 
+             &mut nitems, 
+             &mut bytes_after, 
+             &mut prop,
+        );
+
+        if result != 0 || actual_format == 0 {
+            return None;
+        }
+
+        let arr = from_raw_parts(prop, nitems as usize);
+
+        Some(arr.to_vec())
     }
 }
