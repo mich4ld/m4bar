@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 x11 = { version = "2.19.1", features = ["xlib", "xinerama"] }
-signal-hook = "0.3.13"
 libc = "0.2.112"
 pango = "0.14.8"
 pangocairo = "0.14.0"

@@ -1,5 +1,5 @@
-use std::{time::Duration, sync::mpsc};
-use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules::{self, Module, UpdateMessage, ModuleType, ModuleObject}, bar::Bar, block::BlockAttributes, renderer::Renderer};
+use std::{time::Duration, sync::mpsc, collections::HashMap};
+use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules::{Module, UpdateMessage, ModuleType, ModuleObject, clock::Clock, pager::Pager}, bar::Bar, block::BlockAttributes, renderer::Renderer, ClickEvent};
 use x11::xlib;
 
 const ROOT_UID: u32 = 0;
@@ -64,13 +64,54 @@ fn main() {
         };
 
         let mut renderer = Renderer::new(&x11_client, bar.window);
+        let mut modules = Vec::new();
+        let mut pager = Pager::new();
+        let mut click_events = HashMap::new();
+
         let blocks = vec![
             (String::from("Random text"), block_attr, ModuleType::STATIC),
             (String::from("Another random text"), block_attr2, ModuleType::STATIC),
             (String::from("21:37"), block_attr3, ModuleType::CLOCK),
         ];
 
-        let modules = renderer.create_blocks(blocks);
+        let virtual_desktops = ewmh.get_virtual_desktops_number();
+        let active_virtual_desktop = ewmh.get_current_virtual_desktop();
+
+        for desktop in 0..virtual_desktops {
+            let background = if desktop == active_virtual_desktop {
+                String::from("#88c0d0")
+            } else {
+                String::from("#ffffff")
+            };
+
+            let pager_attr = BlockAttributes {
+                background,
+                border_bottom: 0,
+                border_color: String::from("#000000"),
+                border_top: 0,
+                color: String::from("#2e3440"),
+                font:  String::from("Roboto 10"),
+                height: bar_height,
+                padding: 10,
+                width: 1,
+            };
+
+            let text=  (desktop + 1).to_string();
+            let block = renderer.create_block(text, pager_attr);
+            pager.add_block(block);
+            click_events.insert(block, ClickEvent::ChangeDesktop { desktop_num: desktop });
+        }
+
+        for (text, block_attributes, module_type) in blocks {
+            let block = renderer.create_block(text, block_attributes);
+            match module_type {
+                ModuleType::CLOCK => {
+                    let module = Clock::new(block);
+                    modules.push(ModuleObject::CLOCK(module));
+                },
+                _ => {}
+            }
+        }
 
         x11_client.show_window(bar.window);
 
@@ -92,6 +133,21 @@ fn main() {
                         xlib::Expose => {
                             renderer.expose_all();
                         },
+                        xlib::ButtonPress => {
+                            let click_event_option = click_events.get(&e.button.subwindow);
+
+                            match click_event_option {
+                                Some(click_event) => {
+                                    match click_event {
+                                        ClickEvent::ChangeDesktop { desktop_num } => {
+                                            pager.change_desktop(&ewmh, *desktop_num);
+                                        }
+                                        ClickEvent::ExecuteCommand { command } => todo!(),
+                                    }
+                                },
+                                _ => {}
+                            }
+                        }
                         _ => {}
                     }
                 },

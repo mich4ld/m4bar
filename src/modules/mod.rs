@@ -1,6 +1,7 @@
 pub enum ModuleType {
     STATIC,
-    CLOCK
+    CLOCK,
+    PAGER,
 }
 
 pub trait Module {
@@ -13,6 +14,7 @@ pub struct UpdateMessage {
 }
 
 pub mod clock;
+pub mod pager;
 
 pub enum ModuleObject {
     CLOCK(clock::Clock)

@@ -1,3 +1,8 @@
+pub enum ClickEvent {
+    ChangeDesktop { desktop_num: u8 },
+    ExecuteCommand { command: String },
+}
+
 pub mod utils;
 pub mod colors;
 pub mod ewmh;
