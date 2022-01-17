@@ -1,5 +1,5 @@
 use std::{time::Duration, sync::mpsc, collections::HashMap};
-use m4bar::{protocol, utils::{self, print_notice}, constants::atoms, ewmh::Ewmh, modules::{Module, UpdateMessage, ModuleType, ModuleObject, clock::Clock, pager::{Pager, PagerAttributes}}, bar::Bar, block::BlockAttributes, renderer::Renderer, ClickEvent};
+use m4bar::{protocol, utils::{self, print_notice}, constants::atoms, ewmh::Ewmh, modules::{Module, UpdateMessage, ModuleType, ModuleObject, clock::Clock, pager::{Pager, PagerAttributes}, xwindow::XWindow}, bar::Bar, block::BlockAttributes, renderer::Renderer, ClickEvent};
 use x11::xlib;
 
 const ROOT_UID: u32 = 0;
@@ -96,6 +96,18 @@ fn main() {
               default_attributes: pager_default_attributes,
         };
 
+        let xwindow_attributes = BlockAttributes {
+            background: String::from("#ffffff"),
+            border_bottom: 0,
+            border_color: String::from("#000000"),
+            border_top: 0,
+            color: String::from("#2e3440"),
+            font:  String::from("Roboto 10"),
+            height: bar_height,
+            padding: 10,
+            width: 1,
+        };
+
         let mut pager = Pager::new(pager_attributes);
         pager.render_pager(&mut renderer, &ewmh, &mut click_events);
 
@@ -116,6 +128,7 @@ fn main() {
             }
         }
 
+        let _xwindow = XWindow::new(&mut renderer, &ewmh, xwindow_attributes);
         x11_client.show_window(bar.window);
 
         let (sender, receiver) = mpsc::channel();

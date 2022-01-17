@@ -15,6 +15,7 @@ pub struct UpdateMessage {
 
 pub mod clock;
 pub mod pager;
+pub mod xwindow;
 
 pub enum ModuleObject {
     CLOCK(clock::Clock)

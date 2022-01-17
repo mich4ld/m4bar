@@ -103,4 +103,21 @@ impl Ewmh<'_> {
         
         return current_desktop[0];
     }
+
+    pub unsafe fn get_window_title(&self) -> String {
+        let focused_window_option = self.x11.get_property64("_NET_ACTIVE_WINDOW", self.x11.root);
+        if focused_window_option.is_none() {
+            return String::from("-");
+        }
+
+        let focused_window = focused_window_option.unwrap();
+        let window_title_option = self.x11.get_property(_NET_WM_NAME, focused_window[0]);
+        if window_title_option.is_none() {
+            return String::from("-");
+        }
+        
+        let window_title = window_title_option.unwrap();
+
+        String::from_utf8(window_title).unwrap_or_else(|_| "-".to_string())
+    }
 }
