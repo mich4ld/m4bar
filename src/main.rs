@@ -1,5 +1,5 @@
 use std::{time::Duration, sync::mpsc, collections::HashMap};
-use m4bar::{protocol, utils::{self, print_notice}, ewmh::Ewmh, modules::{Module, UpdateMessage, ModuleType, ModuleObject, clock::Clock, pager::Pager}, bar::Bar, block::BlockAttributes, renderer::Renderer, ClickEvent};
+use m4bar::{protocol, utils::{self, print_notice}, constants::atoms, ewmh::Ewmh, modules::{Module, UpdateMessage, ModuleType, ModuleObject, clock::Clock, pager::{Pager, PagerAttributes}}, bar::Bar, block::BlockAttributes, renderer::Renderer, ClickEvent};
 use x11::xlib;
 
 const ROOT_UID: u32 = 0;
@@ -65,42 +65,45 @@ fn main() {
 
         let mut renderer = Renderer::new(&x11_client, bar.window);
         let mut modules = Vec::new();
-        let mut pager = Pager::new();
         let mut click_events = HashMap::new();
+        
+        let pager_default_attributes = BlockAttributes {
+            background: String::from("#ffffff"),
+            border_bottom: 0,
+            border_color: String::from("#000000"),
+            border_top: 0,
+            color: String::from("#2e3440"),
+            font:  String::from("Roboto 10"),
+            height: bar_height,
+            padding: 10,
+            width: 1,
+        };
+
+        let pager_active_attributes = BlockAttributes {
+            background: String::from("#000000"),
+            color: String::from("#ffffff"),
+            border_bottom: 0,
+            border_color: String::from("#000000"),
+            border_top: 0,
+            font:  String::from("Roboto 10"),
+            height: bar_height,
+            padding: 10,
+            width: 1,
+        };
+
+        let pager_attributes = PagerAttributes {
+              active_attributes: pager_active_attributes,
+              default_attributes: pager_default_attributes,
+        };
+
+        let mut pager = Pager::new(pager_attributes);
+        pager.render_pager(&mut renderer, &ewmh, &mut click_events);
 
         let blocks = vec![
             (String::from("Random text"), block_attr, ModuleType::STATIC),
             (String::from("Another random text"), block_attr2, ModuleType::STATIC),
             (String::from("21:37"), block_attr3, ModuleType::CLOCK),
         ];
-
-        let virtual_desktops = ewmh.get_virtual_desktops_number();
-        let active_virtual_desktop = ewmh.get_current_virtual_desktop();
-
-        for desktop in 0..virtual_desktops {
-            let background = if desktop == active_virtual_desktop {
-                String::from("#88c0d0")
-            } else {
-                String::from("#ffffff")
-            };
-
-            let pager_attr = BlockAttributes {
-                background,
-                border_bottom: 0,
-                border_color: String::from("#000000"),
-                border_top: 0,
-                color: String::from("#2e3440"),
-                font:  String::from("Roboto 10"),
-                height: bar_height,
-                padding: 10,
-                width: 1,
-            };
-
-            let text=  (desktop + 1).to_string();
-            let block = renderer.create_block(text, pager_attr);
-            pager.add_block(block);
-            click_events.insert(block, ClickEvent::ChangeDesktop { desktop_num: desktop });
-        }
 
         for (text, block_attributes, module_type) in blocks {
             let block = renderer.create_block(text, block_attributes);
@@ -121,6 +124,8 @@ fn main() {
             modules_event_loop(sender, modules);
         });
 
+        let current_desktop_atom = x11_client.get_atom(atoms::_NET_CURRENT_DESKTOP);
+
         loop {
             let event = x11_client.get_event();
             if let Ok(message) = receiver.try_recv() {
@@ -132,6 +137,13 @@ fn main() {
                     match e.get_type() {
                         xlib::Expose => {
                             renderer.expose_all();
+                        },
+                        xlib::PropertyNotify => {
+                            if e.property.atom == current_desktop_atom {
+                                let desktop_num = ewmh.get_current_virtual_desktop();
+                                pager.change_desktop(&ewmh, desktop_num);
+                                pager.rerender_pager(&mut renderer);
+                            }
                         },
                         xlib::ButtonPress => {
                             let click_event_option = click_events.get(&e.button.subwindow);
@@ -148,7 +160,7 @@ fn main() {
                                 _ => {}
                             }
                         }
-                        _ => {}
+                        _ =>  {}
                     }
                 },
                 None => {

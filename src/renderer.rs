@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{block::{Block, BlockAttributes}, protocol::X11, modules::{ModuleType, clock::Clock, ModuleObject}};
+use crate::{block::{Block, BlockAttributes}, protocol::X11};
 
 pub struct Renderer<'a> {
    blocks: HashMap<u64, Block<'a>>,
@@ -39,6 +39,15 @@ impl Renderer<'_> {
     unsafe fn handle_width_change(&self) {
         if self.blocks.len() > 1 {
             
+        }
+    }
+
+    pub unsafe fn change_block_attributes(&mut self, block_id: &u64, block_attributes: BlockAttributes) {
+        let block_option = self.blocks.get_mut(block_id);
+        
+        if block_option.is_some() {
+            let block = block_option.unwrap();
+            block.change_attributes(block_attributes);
         }
     }
 

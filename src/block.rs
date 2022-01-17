@@ -73,6 +73,22 @@ impl Block<'_> {
         }
     }
 
+    fn update_colors(&mut self) {
+        self.color_rgb = colors::hex_to_rgb(&self.attributes.color);
+        self.bg_rgb = colors::hex_to_rgb(&self.attributes.background);
+        self.border_rgb = colors::hex_to_rgb(&self.attributes.border_color);
+    }
+
+    pub unsafe fn change_attributes(&mut self, attributes: BlockAttributes) {
+        self.attributes = BlockAttributes {
+            height: self.attributes.height,
+            width: self.attributes.width,
+            ..attributes
+        };
+        self.update_colors();
+        self.render(self.text.to_string());
+    }
+
     unsafe fn set_color(&self, rgb: [f64; 3]) {
         cairo_set_source_rgb(self.cairo_context, rgb[0], rgb[1], rgb[2]);
     }

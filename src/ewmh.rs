@@ -1,19 +1,6 @@
 use x11::xlib::{XA_CARDINAL, PropModeReplace, XA_ATOM, PropModeAppend};
 use crate::protocol::X11;
-
-// ATOM CONSTANTS
-const _NET_ACTIVE_WINDOW: &str = "_NET_ACTIVE_WINDOW";
-const _NET_CURRENT_DESKTOP: &str = "_NET_CURRENT_DESKTOP";
-const _NET_NUMBER_OF_DESKTOPS: &str = "_NET_NUMBER_OF_DESKTOPS";
-const _NET_WM_STATE_STICKY: &str = "_NET_WM_STATE_STICKY";
-const _NET_WM_STATE_ABOVE: &str = "_NET_WM_STATE_ABOVE";
-const _NET_WM_STATE: &str = "_NET_WM_STATE";
-const _NET_WM_WINDOW_TYPE: &str = "_NET_WM_WINDOW_TYPE";
-const _NET_WM_WINDOW_TYPE_DOCK: &str = "_NET_WM_WINDOW_TYPE_DOCK";
-const _NET_WM_STRUT: &str = "_NET_WM_STRUT";
-const _NET_WM_STRUT_PARTIAL: &str = "_NET_WM_STRUT_PARTIAL";
-const _NET_WM_DESKTOP: &str = "_NET_WM_DESKTOP";
-const _NET_WM_NAME: &str = "_NET_WM_NAME";
+use crate::constants::atoms::*;
 
 pub struct Ewmh<'a> {
     x11: &'a X11,

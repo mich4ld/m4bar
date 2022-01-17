@@ -38,7 +38,7 @@ impl X11 {
         xlib::XSelectInput(
             display,
             root,
-            PropertyChangeMask | FocusChangeMask,
+            PropertyChangeMask|FocusChangeMask,
         );
 
         X11 { display, xinerama_status, root, screen, visual, }

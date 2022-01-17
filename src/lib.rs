@@ -3,6 +3,7 @@ pub enum ClickEvent {
     ExecuteCommand { command: String },
 }
 
+pub mod constants;
 pub mod utils;
 pub mod colors;
 pub mod ewmh;
