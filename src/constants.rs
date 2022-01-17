@@ -1,4 +1,5 @@
 pub mod atoms {
+    pub const WM_NAME: &str = "WM_NAME";
     pub const _NET_ACTIVE_WINDOW: &str = "_NET_ACTIVE_WINDOW";
     pub const _NET_CURRENT_DESKTOP: &str = "_NET_CURRENT_DESKTOP";
     pub const _NET_NUMBER_OF_DESKTOPS: &str = "_NET_NUMBER_OF_DESKTOPS";

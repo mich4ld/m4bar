@@ -128,7 +128,7 @@ fn main() {
             }
         }
 
-        let _xwindow = XWindow::new(&mut renderer, &ewmh, xwindow_attributes);
+        let xwindow = XWindow::new(&mut renderer, &ewmh, xwindow_attributes);
         x11_client.show_window(bar.window);
 
         let (sender, receiver) = mpsc::channel();
@@ -137,6 +137,7 @@ fn main() {
             modules_event_loop(sender, modules);
         });
 
+        let active_window_atom = x11_client.get_atom(atoms::_NET_ACTIVE_WINDOW);
         let current_desktop_atom = x11_client.get_atom(atoms::_NET_CURRENT_DESKTOP);
 
         loop {
@@ -156,6 +157,9 @@ fn main() {
                                 let desktop_num = ewmh.get_current_virtual_desktop();
                                 pager.change_desktop(&ewmh, desktop_num);
                                 pager.rerender_pager(&mut renderer);
+                            }
+                            else if e.property.atom == active_window_atom {
+                                xwindow.rerender(&mut renderer, &ewmh);
                             }
                         },
                         xlib::ButtonPress => {

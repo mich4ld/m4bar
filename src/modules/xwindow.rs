@@ -11,4 +11,10 @@ impl XWindow {
 
         XWindow { block }
     }
+
+    pub unsafe fn rerender(&self, renderer: &mut Renderer, ewmh: &Ewmh) {
+        let window_title = ewmh.get_window_title();
+
+        renderer.update_block(self.block, window_title);
+    }
 }
