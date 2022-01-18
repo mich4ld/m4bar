@@ -11,8 +11,6 @@ fn main() {
             utils::throw_critical_error("Cannot use m4bar as root!");
         }
 
-        //xlib::XSetErrorHandler(Some(error_handler));
-
         let x11_client = protocol::X11::new();
 
         let bar_height = 24;
@@ -140,6 +138,7 @@ fn main() {
         });
 
         let active_window_atom = x11_client.get_atom(atoms::_NET_ACTIVE_WINDOW);
+        let wm_name_atom = x11_client.get_atom(atoms::WM_NAME);
         let current_desktop_atom = x11_client.get_atom(atoms::_NET_CURRENT_DESKTOP);
 
         loop {
@@ -161,6 +160,9 @@ fn main() {
                                 pager.rerender_pager(&mut renderer);
                             }
                             else if e.property.atom == active_window_atom {
+                                xwindow.rerender(&mut renderer, &ewmh);
+                            }
+                            else if e.property.atom == wm_name_atom {
                                 xwindow.rerender(&mut renderer, &ewmh);
                             }
                         },

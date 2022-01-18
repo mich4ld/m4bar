@@ -1,4 +1,4 @@
-use x11::xlib::{XA_CARDINAL, PropModeReplace, XA_ATOM, PropModeAppend};
+use x11::xlib::{XA_CARDINAL, PropModeReplace, XA_ATOM, PropModeAppend, PropertyChangeMask};
 use crate::protocol::X11;
 use crate::constants::atoms::*;
 
@@ -82,6 +82,7 @@ impl Ewmh<'_> {
     pub unsafe fn change_virtual_desktop(&self, desktop_num: i64) {
         let data: [i64; 5] = [desktop_num, 0, 0, 0, 0];
         self.x11.send_event(_NET_CURRENT_DESKTOP, data);
+        self.x11.flush();
     }
 
     pub unsafe fn get_virtual_desktops_number(&self) -> u8 {
@@ -105,7 +106,7 @@ impl Ewmh<'_> {
     }
 
     pub unsafe fn get_window_title(&self) -> String {
-        let focused_window_option = self.x11.get_property64("_NET_ACTIVE_WINDOW", self.x11.root);
+        let focused_window_option = self.x11.get_property64(_NET_ACTIVE_WINDOW, self.x11.root);
         if focused_window_option.is_none() {
             return String::from("-");
         }
@@ -117,6 +118,7 @@ impl Ewmh<'_> {
         }
         
         let window_title = window_title_option.unwrap();
+        self.x11.select_input(focused_window[0], PropertyChangeMask);
 
         String::from_utf8(window_title).unwrap_or_else(|_| "-".to_string())
     }

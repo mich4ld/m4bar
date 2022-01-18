@@ -1,11 +1,10 @@
 use std::ffi::CString;
 use std::mem::zeroed;
-use std::os::raw::{c_int, c_long};
 use std::ptr::null;
 use std::slice::from_raw_parts;
 use x11::xlib::{self, _XDisplay, Visual, XChangeProperty, PropertyChangeMask, FocusChangeMask};
 use x11::xinerama;
-use crate::utils::{self, print_warn};
+use crate::utils;
 
 pub struct ScreenInfo {
     pub x: i32,
@@ -23,7 +22,7 @@ pub struct X11 {
 }
 
 unsafe extern "C" fn x11_error_handler(_display: *mut xlib::_XDisplay, _error: *mut xlib::XErrorEvent) -> i32 {
-    0
+    1
 }
 
 impl X11 {
@@ -85,7 +84,7 @@ impl X11 {
         window
     }
 
-    pub unsafe fn select_input(&self, window: u64, masks: c_long) {
+    pub unsafe fn select_input(&self, window: u64, masks: i64) {
         xlib::XSelectInput(self.display, window, masks);
     }
 
@@ -128,6 +127,10 @@ impl X11 {
         xlib::XSync(self.display, xlib::False);
     }
 
+    pub unsafe fn flush(&self) {
+        xlib::XFlush(self.display);
+    }
+
     pub unsafe fn resize_window(&self, window: u64, width: u32, height: u32) {
         xlib::XResizeWindow(self.display, window, width, height);
     }
@@ -138,7 +141,7 @@ impl X11 {
         xlib::XInternAtom(self.display, name.as_ptr(), xlib::False)
     }
 
-    pub unsafe fn set_atom(&self, window: u64, atom_type: u64, atom: u64, value: *const u8, len: i32, mode: c_int) {
+    pub unsafe fn set_atom(&self, window: u64, atom_type: u64, atom: u64, value: *const u8, len: i32, mode: i32) {
         XChangeProperty(
             self.display, 
             window, 
