@@ -5,7 +5,7 @@ use std::ptr::null;
 use std::slice::from_raw_parts;
 use x11::xlib::{self, _XDisplay, Visual, XChangeProperty, PropertyChangeMask, FocusChangeMask};
 use x11::xinerama;
-use crate::utils;
+use crate::utils::{self, print_warn};
 
 pub struct ScreenInfo {
     pub x: i32,
@@ -22,6 +22,10 @@ pub struct X11 {
     pub visual: *mut Visual,
 }
 
+unsafe extern "C" fn x11_error_handler(_display: *mut xlib::_XDisplay, _error: *mut xlib::XErrorEvent) -> i32 {
+    0
+}
+
 impl X11 {
     pub unsafe fn new() -> X11 {
         utils::print_notice("Opening X11 connection...");
@@ -35,6 +39,7 @@ impl X11 {
         let visual = xlib::XDefaultVisual(display, screen);
         let xinerama_status = xinerama::XineramaIsActive(display);
 
+        xlib::XSetErrorHandler(Some(x11_error_handler));
         xlib::XSelectInput(
             display,
             root,

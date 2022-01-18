@@ -11,6 +11,8 @@ fn main() {
             utils::throw_critical_error("Cannot use m4bar as root!");
         }
 
+        //xlib::XSetErrorHandler(Some(error_handler));
+
         let x11_client = protocol::X11::new();
 
         let bar_height = 24;
