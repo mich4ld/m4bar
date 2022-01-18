@@ -258,3 +258,12 @@ impl X11 {
         Some(arr)
     }
 }
+
+impl Drop for X11 {
+    fn drop(&mut self) {
+        utils::print_notice("Closing X11 connection...");
+        unsafe { 
+            self.close();
+        }
+    }
+}

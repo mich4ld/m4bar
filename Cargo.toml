@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 x11 = { version = "2.19.1", features = ["xlib", "xinerama"] }
 libc = "0.2.112"
+signal-hook = "0.3.13"
 pango = "0.14.8"
 pangocairo = "0.14.0"
 cairo-sys-rs = { version = "0.14.9", features = ["xlib"] }

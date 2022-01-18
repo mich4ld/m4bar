@@ -1,5 +1,7 @@
 use std::{time::Duration, sync::mpsc, collections::HashMap};
-use m4bar::{protocol, utils::{self, print_notice}, constants::atoms, ewmh::Ewmh, modules::{Module, UpdateMessage, ModuleType, ModuleObject, clock::Clock, pager::{Pager, PagerAttributes}, xwindow::XWindow}, bar::Bar, block::BlockAttributes, renderer::Renderer, ClickEvent};
+use libc::{SIGQUIT, SIGTERM, SIGINT};
+use m4bar::{protocol, utils::{self, print_notice, throw_critical_error}, constants::atoms, ewmh::Ewmh, modules::{Module, UpdateMessage, ModuleType, ModuleObject, clock::Clock, pager::{Pager, PagerAttributes}, xwindow::XWindow}, bar::Bar, block::BlockAttributes, renderer::Renderer, ClickEvent};
+use signal_hook::iterator::Signals;
 use x11::xlib;
 
 const ROOT_UID: u32 = 0;
@@ -141,7 +143,23 @@ fn main() {
         let wm_name_atom = x11_client.get_atom(atoms::WM_NAME);
         let current_desktop_atom = x11_client.get_atom(atoms::_NET_CURRENT_DESKTOP);
 
+        let signals_result = Signals::new([
+            SIGQUIT,
+            SIGTERM,
+            SIGINT, 
+        ]);
+
+        if signals_result.is_err() {
+            throw_critical_error("Signals error");
+        }
+
+        let mut signals = signals_result.unwrap();
+
         loop {
+            if signals.pending().count() > 0 {
+                break;
+            }
+
             let event = x11_client.get_event();
             if let Ok(message) = receiver.try_recv() {
                 renderer.update_block(message.window, message.text);
@@ -186,7 +204,7 @@ fn main() {
                 },
                 None => {
                     // reduces little bit asking for pending events
-                    std::thread::sleep(Duration::from_millis(100));
+                    std::thread::sleep(Duration::from_millis(50));
                 }
             }
         }
