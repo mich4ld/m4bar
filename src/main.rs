@@ -1,6 +1,6 @@
 use std::{time::Duration, sync::mpsc, collections::HashMap};
 use libc::{SIGQUIT, SIGTERM, SIGINT};
-use m4bar::{protocol, utils::{self, print_notice, throw_critical_error}, constants::atoms, ewmh::Ewmh, modules::{Module, UpdateMessage, ModuleType, ModuleObject, clock::Clock, pager::{Pager, PagerAttributes}, xwindow::XWindow}, bar::Bar, block::BlockAttributes, renderer::Renderer, ClickEvent};
+use m4bar::{protocol, utils::{self, print_notice, throw_critical_error}, constants::atoms, ewmh::Ewmh, modules::{Module, UpdateMessage, ModuleType, ModuleObject, clock::Clock, pager::{Pager, PagerAttributes}, xwindow::XWindow}, bar::Bar, block::BlockAttributes, renderer::Renderer, ClickEvent, config::Config};
 use signal_hook::iterator::Signals;
 use x11::xlib;
 
@@ -12,6 +12,12 @@ fn main() {
         if uid == ROOT_UID {
             utils::throw_critical_error("Cannot use m4bar as root!");
         }
+
+        let args = utils::read_args();
+        let config_path = args.get(1).unwrap();
+
+        let config = Config::new(config_path.to_string());
+        config.parse();
 
         let x11_client = protocol::X11::new();
 
@@ -204,7 +210,7 @@ fn main() {
                 },
                 None => {
                     // reduces little bit asking for pending events
-                    std::thread::sleep(Duration::from_millis(50));
+                    std::thread::sleep(Duration::from_millis(100));
                 }
             }
         }

@@ -13,3 +13,9 @@ pub mod atoms {
     pub const _NET_WM_DESKTOP: &str = "_NET_WM_DESKTOP";
     pub const _NET_WM_NAME: &str = "_NET_WM_NAME";
 }
+
+pub mod config {
+    pub const BAR_BACKGROUND: &str = "#000000";
+    pub const BAR_COLOR: &str = "#ffffff";
+    pub const BAR_HEIGHT: i64 = 24;
+}

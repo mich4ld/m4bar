@@ -12,3 +12,5 @@ pub mod modules;
 pub mod bar;
 pub mod block;
 pub mod renderer;
+pub mod errors;
+pub mod config;

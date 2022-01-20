@@ -1,4 +1,4 @@
-use std::process::exit;
+use std::{process::exit, env};
 
 const WHITE: &str = "\x1b[0m";
 const BOLD: &str = "\x1b[1m";
@@ -21,4 +21,10 @@ pub fn print_warn(msg: &str) {
 pub fn throw_critical_error(msg: &str) {
     print_error(msg);
     exit(1);
+}
+
+pub fn read_args() -> Vec<String> {
+    let args = env::args();
+
+    args.collect()
 }

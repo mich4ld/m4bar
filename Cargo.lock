@@ -207,6 +207,7 @@ dependencies = [
  "pango",
  "pangocairo",
  "signal-hook",
+ "toml",
  "x11",
 ]
 
