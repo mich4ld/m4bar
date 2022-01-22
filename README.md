@@ -12,3 +12,4 @@ Simple status bar written in Rust. Discontinued project for now.
 - blocks fixed in code
 - works with Kwin
 - write basic modules (clock, pager)
+- has some config parsing
