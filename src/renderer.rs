@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-
 use crate::{block::{Block, BlockAttributes}, protocol::X11};
 
 pub struct Renderer<'a> {

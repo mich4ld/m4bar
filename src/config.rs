@@ -5,6 +5,7 @@ use crate::block::BlockAttributes;
 use crate::errors::ParserError;
 use crate::constants::defaults::*;
 use crate::constants::config;
+use crate::modules::pager::PagerAttributes;
 
 pub struct BarConfig {
     background: String,
@@ -129,18 +130,63 @@ impl Config {
         Some(clock_config)
     }
 
-    fn parse_pager(&self, config: &ConfigMap, defaults: &InheritedDefaults) {
+    fn parse_pager(&self, config: &ConfigMap, defaults: &InheritedDefaults) -> Option<PagerAttributes> {
         let pager_option = config.get("pager");
         if pager_option.is_none() {
-
+            return None;
         }
 
         let pager = pager_option.unwrap();
         let pager = pager.as_table().unwrap();
 
         let attributes = self.parse_attributes(pager, defaults);
+        let active_defaults = InheritedDefaults {
+            background: attributes.background.clone(),
+            color: attributes.color.clone(),
+            font: attributes.font.clone(),
+            padding: attributes.padding,
+            height: attributes.height as i64,
+            border_top: attributes.border_top,
+            border_bottom: attributes.border_bottom,
+            border_color: attributes.border_color.clone(),
+        };
 
+        let active_pager = pager.get("active");
+        if active_pager.is_none() {
+            let active_attributes = BlockAttributes {
+                background: active_defaults.background,
+                border_bottom: active_defaults.border_bottom,
+                border_color: active_defaults.border_color,
+                border_top: active_defaults.border_top,
+                color: active_defaults.color,
+                font: active_defaults.font,
+                height: active_defaults.height as u32,
+                padding: active_defaults.padding,
+                width: 1,
+            };
 
+            // active_atributes same as attributes
+            let pager_attributes = PagerAttributes {
+                active_attributes,
+                default_attributes: attributes,
+            };
+
+            return Some(pager_attributes);
+        }
+
+        let active_pager = active_pager
+            .unwrap()
+            .as_table()
+            .unwrap();
+        
+        let active_attributes = self.parse_attributes(active_pager, &active_defaults);
+
+        let pager_attributes = PagerAttributes { 
+            active_attributes,
+            default_attributes: attributes,
+         };
+
+         Some(pager_attributes)
     }
 
     fn parse_blocks(&self, config: &ConfigMap, defaults: &InheritedDefaults) -> HashMap<String, BlockAttributes>  {
