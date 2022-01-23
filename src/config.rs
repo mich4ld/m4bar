@@ -13,6 +13,17 @@ pub struct BarConfig {
     font: String,
 }
 
+pub struct InheritedDefaults {
+    background: String,
+    color: String,
+    padding: i32,
+    border_bottom: i32,
+    border_top: i32,
+    border_color: String,
+    font: String,
+    height: i64,
+}
+
 pub struct ClockConfig {
     attributes: BlockAttributes,
     format: String,
@@ -58,32 +69,33 @@ impl Config {
         }
     }
 
-    fn parse_attributes(&self, block: &Map<String, Value>, bar_config: &BarConfig) -> BlockAttributes {
-        let background_default = Value::from(bar_config.background.clone());
+    fn parse_attributes(&self, block: &Map<String, Value>, defaults: &InheritedDefaults) -> BlockAttributes {
+        let background_default = Value::from(defaults.background.clone());
         let background = block.get(config::BACKGROUND).unwrap_or(&background_default);
 
-        let color_default = Value::from(bar_config.color.clone());
+        let color_default = Value::from(defaults.color.clone());
         let color = block.get(config::COLOR).unwrap_or(&color_default);
 
         let padding_default = Value::from(BLOCK_PADDING);
         let padding = block.get(config::PADDING).unwrap_or(&padding_default);
 
-        let font_default = Value::from(bar_config.font.clone());
+        let font_default = Value::from(defaults.font.clone());
         let font = block.get(config::FONT).unwrap_or(&font_default);
 
-        let border_top_default = Value::from(BLOCK_BORDER);
+        let border_top_default = Value::from(defaults.border_top);
         let border_top = block.get(config::BORDER_TOP).unwrap_or(&border_top_default);
 
-        let border_bottom_default = Value::from(BLOCK_BORDER);
+        let border_bottom_default = Value::from(defaults.border_bottom);
         let border_bottom = block.get(config::BORDER_BOTTOM).unwrap_or(&border_bottom_default);
 
-        let border_color = block.get(config::BORDER_COLOR).unwrap_or(&background_default);
+        let border_color_default = Value::from(defaults.border_color.clone());
+        let border_color = block.get(config::BORDER_COLOR).unwrap_or(&border_color_default);
 
         let attributes = BlockAttributes {
             background: background.as_str().unwrap().to_string(),
             color: color.as_str().unwrap().to_string(),
             padding: padding.as_integer().unwrap() as i32,
-            height: bar_config.height as u32,
+            height: defaults.height as u32,
             font: font.as_str().unwrap().to_string(),
             border_bottom: border_bottom.as_integer().unwrap() as i32,
             border_top: border_top.as_integer().unwrap() as i32,
@@ -95,7 +107,7 @@ impl Config {
 
     }
 
-    fn parse_clock(&self, config: &ConfigMap, bar_config: &BarConfig) -> Option<ClockConfig> {
+    fn parse_clock(&self, config: &ConfigMap, defaults: &InheritedDefaults) -> Option<ClockConfig> {
         let clock_option = config.get("clock");
         if clock_option.is_none() {
             return None;
@@ -104,7 +116,7 @@ impl Config {
         let clock = clock_option.unwrap();
         let clock = clock.as_table().unwrap();
         
-        let attributes = self.parse_attributes(clock, bar_config);
+        let attributes = self.parse_attributes(clock, defaults);
 
         let default_format = Value::from(CLOCK_FORMAT);
         let format = clock.get(config::TIME_FORMAT).unwrap_or(&default_format);
@@ -117,7 +129,21 @@ impl Config {
         Some(clock_config)
     }
 
-    fn parse_blocks(&self, config: &ConfigMap, bar_config: &BarConfig) -> HashMap<String, BlockAttributes>  {
+    fn parse_pager(&self, config: &ConfigMap, defaults: &InheritedDefaults) {
+        let pager_option = config.get("pager");
+        if pager_option.is_none() {
+
+        }
+
+        let pager = pager_option.unwrap();
+        let pager = pager.as_table().unwrap();
+
+        let attributes = self.parse_attributes(pager, defaults);
+
+
+    }
+
+    fn parse_blocks(&self, config: &ConfigMap, defaults: &InheritedDefaults) -> HashMap<String, BlockAttributes>  {
         let mut blocks_map: HashMap<String, BlockAttributes> = HashMap::new();
 
         let raw_blocks = config.get("block").unwrap();
@@ -125,7 +151,7 @@ impl Config {
         
         for (key, value) in blocks {
             let block = value.as_table().unwrap();
-            let attributes = self.parse_attributes(block, bar_config);
+            let attributes = self.parse_attributes(block, defaults);
 
             blocks_map.insert(
                 key.to_string(), 
@@ -141,10 +167,22 @@ impl Config {
         let parsed_config = raw_config.parse::<Value>()?;
 
         let config: &ConfigMap = parsed_config.as_table().unwrap();
-
         let bar_config = self.parse_bar(config);
-        let blocks_attributes = self.parse_blocks(config, &bar_config);
 
+        let defaults = InheritedDefaults {
+            background: bar_config.background.clone(),
+            color: bar_config.color.clone(),
+            border_bottom: BLOCK_BORDER,
+            border_top: BLOCK_BORDER,
+            border_color: BLOCK_BORDER_COLOR.to_string(),
+            font: bar_config.font.clone(),
+            height: bar_config.height,
+            padding: BLOCK_PADDING,
+        };
+
+        let blocks_attributes = self.parse_blocks(config, &defaults);
+        let clock = self.parse_clock(config, &defaults);
+        
         println!("BAR background: {}", bar_config.background);
         println!("HELLO BLOCK BACKGROUND: {}", blocks_attributes.get("hello").unwrap().background);
         

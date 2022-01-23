@@ -22,6 +22,7 @@ pub mod defaults {
 
     pub const BLOCK_PADDING: i32 = 10;
     pub const BLOCK_BORDER: i32 = 0;
+    pub const BLOCK_BORDER_COLOR: &str = "#000000";
 
     pub const CLOCK_FORMAT: &str = "%H:%M";
 }

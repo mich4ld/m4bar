@@ -17,7 +17,11 @@ fn main() {
         let config_path = args.get(1).unwrap();
 
         let config = Config::new(config_path.to_string());
-        config.parse();
+        let result = config.parse();
+
+        if result.is_err() {
+            println!("SOME ERROR");
+        }
 
         let x11_client = protocol::X11::new();
 
