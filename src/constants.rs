@@ -14,8 +14,24 @@ pub mod atoms {
     pub const _NET_WM_NAME: &str = "_NET_WM_NAME";
 }
 
-pub mod config {
+pub mod defaults {
+    pub const BAR_FONT: &str = "Monospace 10";
     pub const BAR_BACKGROUND: &str = "#000000";
     pub const BAR_COLOR: &str = "#ffffff";
     pub const BAR_HEIGHT: i64 = 24;
+
+    pub const BLOCK_PADDING: i32 = 10;
+    pub const BLOCK_BORDER: i32 = 0;
+}
+
+pub mod config {
+    pub const BACKGROUND: &str = "background";
+    pub const COLOR: &str = "color";
+    pub const FONT: &str = "font";
+    pub const HEIGHT: &str = "height";
+    pub const TEXT: &str = "text";
+    pub const PADDING: &str = "padding";
+    pub const BORDER_BOTTOM: &str = "border-bottom";
+    pub const BORDER_TOP: &str = "border-top";
+    pub const BORDER_COLOR: &str = "border-color";
 }
