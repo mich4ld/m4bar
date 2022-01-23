@@ -1,5 +1,5 @@
 ## m4bar
-Simple status bar written in Rust.
+Simple status bar written in Rust. Not ready to use - early stage of development.
 
 ![image](https://user-images.githubusercontent.com/43048524/150657947-163fce61-5f61-48f6-968d-78af3450dceb.png)
 
