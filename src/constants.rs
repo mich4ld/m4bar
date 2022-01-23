@@ -22,6 +22,8 @@ pub mod defaults {
 
     pub const BLOCK_PADDING: i32 = 10;
     pub const BLOCK_BORDER: i32 = 0;
+
+    pub const CLOCK_FORMAT: &str = "%H:%M";
 }
 
 pub mod config {
@@ -34,4 +36,6 @@ pub mod config {
     pub const BORDER_BOTTOM: &str = "border-bottom";
     pub const BORDER_TOP: &str = "border-top";
     pub const BORDER_COLOR: &str = "border-color";
+
+    pub const TIME_FORMAT: &str = "format";
 }
