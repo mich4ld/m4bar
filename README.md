@@ -8,7 +8,7 @@ Simple status bar written in Rust. Not ready to use - early stage of development
 - support many window managers
 - basic modules (clock, pager and hardware indicators)
 
-#### Result:
+#### Current status:
 - blocks fixed in code
 - works with Kwin
 - has basic modules (clock, pager)
