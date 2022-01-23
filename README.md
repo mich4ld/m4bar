@@ -22,7 +22,7 @@ $ m4bar <path-to-config>
 
 ### Example config
 Config file uses `.toml` format 
-```ini
+```toml
 [bar]
 background = "#ffffff"
 color = "#2e3440"
