@@ -6,10 +6,10 @@ Simple status bar written in Rust. Discontinued project for now.
 #### Goals:
 - configurable
 - support many window managers
-- write basic modules (clock, pager and hardware indicators)
+- basic modules (clock, pager and hardware indicators)
 
 #### Result:
 - blocks fixed in code
 - works with Kwin
-- write basic modules (clock, pager)
+- has basic modules (clock, pager)
 - has some config parsing
